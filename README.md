@@ -4,6 +4,8 @@ A powerful web scraping tool that extracts company email addresses from Trustpil
 
 ## ✨ Features
 
+- **🔐 Password Protection**: Secure access with customizable password
+- **🎨 GOCONNECT Branding**: Professional login interface with company branding
 - **Smart Email Extraction**: Automatically identifies and extracts company email addresses
 - **Company Filtering**: Skips companies without email addresses for clean results
 - **Flexible Scraping Options**: Choose between limited (first 10) or all available emails per company
@@ -11,177 +13,159 @@ A powerful web scraping tool that extracts company email addresses from Trustpil
 - **CSV Export**: Download results in spreadsheet format
 - **Real-time Progress**: Live updates during scraping process
 - **Web Interface**: User-friendly browser-based application
-- **Speed Optimized**: Reduced delays for faster scraping
+- **Speed Optimized**: Reduced delays and timeouts for faster scraping
 
-## 🏗️ Architecture
+## 🚀 Deployment on Railway
 
-- **Backend**: Python Flask application with Selenium WebDriver
-- **Frontend**: Modern HTML/CSS/JavaScript interface
-- **Scraping Engine**: Automated browser automation for data extraction
-- **Data Processing**: Regex-based email validation and deduplication
+This application is configured for deployment on Railway, a modern platform for deploying full-stack applications.
 
-## 🚀 Quick Start
+### **Prerequisites**
+- [Railway Account](https://railway.app/)
+- [GitHub Repository](https://github.com/olawanle/trustpilot-scraper)
 
-### Prerequisites
+### **Deployment Steps**
 
-- Python 3.9+
-- Chrome browser
-- Git
-
-### Installation
-
-1. **Clone the repository**
+1. **Fork/Clone Repository**
    ```bash
-   git clone https://github.com/yourusername/trustpilot-email-scraper.git
+   git clone https://github.com/olawanle/trustpilot-scraper.git
    cd trustpilot-email-scraper
    ```
 
-2. **Create virtual environment**
+2. **Connect to Railway**
+   - Go to [Railway Dashboard](https://railway.app/dashboard)
+   - Click "New Project"
+   - Select "Deploy from GitHub repo"
+   - Choose your repository
+
+3. **Automatic Deployment**
+   - Railway will automatically detect the Python application
+   - Build and deploy using the configuration in `railway.json`
+   - The app will be available at your Railway domain
+
+4. **Environment Variables** (Optional)
+   - `PORT`: Automatically set by Railway
+   - `SECRET_KEY`: Change the default secret key in production
+
+### **Railway Configuration**
+
+The application includes:
+- **`railway.json`**: Railway-specific deployment configuration
+- **`Procfile`**: Process management for Railway
+- **`runtime.txt`**: Python version specification
+- **`requirements.txt`**: Python dependencies
+
+## 🔐 Security Features
+
+- **Password Protection**: Default password is `olawanle` (change in production)
+- **Session Management**: Secure Flask sessions
+- **Route Protection**: All API endpoints require authentication
+- **Logout Functionality**: Secure session termination
+
+## 🛠️ Local Development
+
+### **Prerequisites**
+- Python 3.9+
+- Chrome/Chromium browser
+- Git
+
+### **Installation**
+
+1. **Clone Repository**
+   ```bash
+   git clone https://github.com/olawanle/trustpilot-scraper.git
+   cd trustpilot-email-scraper
+   ```
+
+2. **Create Virtual Environment**
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. **Install dependencies**
+3. **Install Dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Run the application**
+4. **Run Application**
    ```bash
    python app.py
    ```
 
-5. **Open your browser**
-   Navigate to `http://localhost:5000`
+5. **Access Application**
+   - Open browser: `http://localhost:5000`
+   - Login with password: `olawanle`
 
-## 📖 Usage
+## 📱 Usage
 
-### Basic Search
-1. Enter a search term (e.g., "realtor", "restaurant")
-2. Select maximum number of companies to scrape
-3. Choose email scraping mode:
-   - **Limited**: First 10 emails per company
-   - **All Available**: Every email found per company
-4. Click "Start Search" and wait for results
+### **Basic Search**
+1. Enter company name or search term
+2. Select sector (optional)
+3. Choose maximum companies to scrape
+4. Select email scraping option (limited vs. all)
+5. Click "Search" to start scraping
 
-### Advanced Options
-- **Sector Selection**: Filter by business category
-- **Company Limit**: Set maximum companies to process
-- **Real-time Monitoring**: Watch progress in real-time
+### **Advanced Options**
+- **Sector Selection**: Pre-defined business sectors with relevant search terms
+- **Company Limits**: Control how many companies to process (5-500)
+- **Email Scraping**: Choose between first 10 emails or all available emails per company
 
-### Export Results
-- **CSV Download**: Export all results to spreadsheet
-- **Data Format**: Company name, URL, emails, sector, timestamp
+### **Export Options**
+- **CSV Export**: Download results in spreadsheet format
+- **JSON Export**: Download raw data for further processing
 
 ## 🔧 Configuration
 
-### Environment Variables
-- `DEFAULT_MAX_COMPANIES`: Maximum companies to scrape (default: 50)
-- `DEFAULT_DELAY_BETWEEN_REQUESTS`: Delay between requests (default: 0.5s)
-- `DEFAULT_PAGE_LOAD_TIMEOUT`: Page load timeout (default: 15s)
+### **Default Settings**
+- **Max Companies**: 10 (configurable 5-500)
+- **Delay Between Requests**: 0.5 seconds
+- **Page Load Timeout**: 15 seconds
+- **Element Timeout**: 5 seconds
+- **Chrome Headless**: Enabled for production
 
-### Customization
-- Modify `config.py` for application settings
-- Adjust delays in `app.py` for different scraping speeds
-- Customize email regex patterns for specific formats
-
-## 🌐 Deployment
-
-### Netlify (Static Frontend)
-The web interface is deployed on Netlify:
-- **Live URL**: https://trustscraper.netlify.app
-- **Admin Panel**: https://app.netlify.com/projects/trustscraper
-
-### Local Backend
-The Python scraper runs locally and requires:
-- Python environment
-- Chrome browser
-- Selenium WebDriver
-
-## 📊 Data Structure
-
-### Company Information
-```json
-{
-  "name": "Company Name",
-  "url": "https://www.trustpilot.com/review/company",
-  "company_emails": ["email@company.com"],
-  "total_emails": 1,
-  "sector": "business_sector",
-  "scraped_at": "2025-08-09T18:46:55.345821"
-}
+### **Customization**
+Edit the configuration variables in `app.py`:
+```python
+DEFAULT_MAX_COMPANIES = 10
+DEFAULT_DELAY_BETWEEN_REQUESTS = 0.5
+DEFAULT_PAGE_LOAD_TIMEOUT = 15
+DEFAULT_ELEMENT_TIMEOUT = 5
 ```
 
-### CSV Export Format
-- Company Name
-- Company URL
-- Company Emails
-- Total Emails
-- Sector
-- Scraped At
+## 📊 Supported Sectors
 
-## 🛠️ Development
+- **Real Estate**: Real estate agencies, property management, realtors
+- **Finance & Banking**: Banks, investment firms, insurance companies
+- **Healthcare**: Hospitals, clinics, medical practices, pharmacies
+- **Technology**: Software companies, IT services, technology firms
+- **Retail & E-commerce**: Online stores, retail chains, marketplaces
+- **Custom Search**: User-defined search terms for any industry
 
-### Project Structure
-```
-trustpilot-email-scraper/
-├── app.py                 # Main Flask application
-├── config.py             # Configuration settings
-├── templates/
-│   └── index.html        # Web interface
-├── venv/                 # Virtual environment
-├── netlify.toml          # Netlify configuration
-├── .gitignore            # Git ignore rules
-└── README.md             # This file
-```
-
-### Key Components
-- **TrustpilotScraper**: Core scraping logic
-- **Flask Routes**: API endpoints for search operations
-- **Background Tasks**: Asynchronous scraping with threading
-- **Web Interface**: User-friendly frontend
-
-## ⚠️ Important Notes
+## 🚨 Important Notes
 
 - **Rate Limiting**: Respect Trustpilot's terms of service
-- **Legal Compliance**: Ensure compliance with local laws and website terms
-- **Data Usage**: Use extracted data responsibly and ethically
-- **Browser Requirements**: Chrome browser required for Selenium automation
+- **Browser Requirements**: Chrome/Chromium browser required for Selenium
+- **Production Security**: Change default secret key and password in production
+- **Resource Usage**: Large scraping jobs may consume significant resources
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-## 📝 License
+## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is for educational and research purposes. Please respect Trustpilot's terms of service and use responsibly.
 
 ## 🆘 Support
 
-- **Issues**: Report bugs and feature requests on GitHub
-- **Documentation**: Check this README for usage instructions
-- **Community**: Join discussions in GitHub Discussions
-
-## 🔄 Updates
-
-### Recent Changes
-- ✅ Added "Scrape All Emails" option
-- ✅ Optimized scraping speed
-- ✅ Improved email filtering
-- ✅ Enhanced UI/UX
-- ✅ Netlify deployment ready
-
-### Roadmap
-- [ ] API rate limiting
-- [ ] Multiple search term support
-- [ ] Advanced filtering options
-- [ ] Data analytics dashboard
-- [ ] Mobile-responsive design
+For issues and questions:
+- Check the [GitHub Issues](https://github.com/olawanle/trustpilot-scraper/issues)
+- Review the configuration and requirements
+- Ensure Chrome/Chromium is properly installed
 
 ---
 

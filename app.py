@@ -19,20 +19,21 @@ from webdriver_manager.chrome import ChromeDriverManager
 import logging
 import threading
 from queue import Queue
-try:
-    from config import *
-except ImportError:
-    # Default values if config file is not found
-    FLASK_HOST = '0.0.0.0'
-    FLASK_PORT = 5000
-    FLASK_DEBUG = True
-    DEFAULT_MAX_COMPANIES = 10
-    DEFAULT_DELAY_BETWEEN_REQUESTS = 0.5
-    DEFAULT_PAGE_LOAD_TIMEOUT = 15
-    DEFAULT_ELEMENT_TIMEOUT = 5
-    CHROME_HEADLESS = True
-    TRUSTPILOT_BASE_URL = "https://www.trustpilot.com"
-    TRUSTPILOT_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+# Default values for configuration
+FLASK_HOST = '0.0.0.0'
+FLASK_PORT = int(os.environ.get('PORT', 5000))  # Railway will provide PORT environment variable
+FLASK_DEBUG = False  # Set to False for production
+DEFAULT_MAX_COMPANIES = 10
+DEFAULT_DELAY_BETWEEN_REQUESTS = 0.5
+DEFAULT_PAGE_LOAD_TIMEOUT = 15
+DEFAULT_ELEMENT_TIMEOUT = 5
+CHROME_HEADLESS = True
+CHROME_NO_SANDBOX = True
+CHROME_DISABLE_DEV_SHM = True
+CHROME_DISABLE_GPU = True
+CHROME_WINDOW_SIZE = "1920,1080"
+TRUSTPILOT_BASE_URL = "https://www.trustpilot.com"
+TRUSTPILOT_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here-change-in-production'  # Change this in production
