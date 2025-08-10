@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trustpilot Email Scraper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .search-section {
+            padding: 40px;
+            background: #f8f9fa;
+        }
+
+        .search-form {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-options {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .search-options-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .option-group label {
+            font-size: 0.9rem;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .sector-select, .number-select {
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: white;
+            min-width: 150px;
+        }
+
+        .sector-select:focus, .number-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .sector-description {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 5px;
+            font-style: italic;
+            max-width: 200px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            padding: 40px;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .results-count {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .results-stats {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .company-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .company-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .company-header {
+            margin-bottom: 15px;
+        }
+
+        .company-name {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .company-original-name {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        .company-sector {
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            padding: 5px 10px;
+            border-radius: 15px;
+            display: inline-block;
+        }
+
+        .scraped-time {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: right;
+            margin-top: 15px;
+            font-style: italic;
+        }
+
+        .company-url {
+            color: #667eea;
+            text-decoration: none;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .company-url:hover {
+            text-decoration: underline;
+        }
+
+        .emails-section {
+            margin-top: 20px;
+        }
+
+        .emails-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .email-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .email-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid #bbdefb;
+        }
+
+        .website-tag {
+            background: #f3e5f5;
+            color: #7b1fa2;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid #e1bee7;
+        }
+
+        .no-emails {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .export-section {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .export-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .export-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .export-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .search-form {
+                flex-direction: column;
+            }
+            
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header, .search-section, .results-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Trustpilot Email Scraper</h1>
+            <p>Find contact information and emails from Trustpilot company pages and reviews</p>
+        </div>
+
+        <div class="search-section">
+            <form class="search-form" id="searchForm">
+                <div class="search-options">
+                    <div class="search-input-group">
+                        <input 
+                            type="text" 
+                            class="search-input" 
+                            id="searchInput" 
+                            placeholder="Enter company name or search term..."
+                            required
+                        >
+                        <button type="submit" class="search-btn" id="searchBtn">
+                            🔍 Search
+                        </button>
+                    </div>
+                    
+                    <div class="search-options-row">
+                        <div class="option-group">
+                            <label for="sectorSelect">Sector:</label>
+                            <select id="sectorSelect" class="sector-select">
+                                <option value="">Select a sector...</option>
+                            </select>
+                            <div id="sectorDescription" class="sector-description"></div>
+                        </div>
+                        
+                        <div class="option-group">
+                            <label for="maxCompanies">Max Companies:</label>
+                            <select id="maxCompanies" class="number-select">
+                                <option value="5">5</option>
+                                <option value="10" selected>10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                                <option value="500">500</option>
+                            </select>
+                        </div>
+                        
+                        <div class="option-group">
+                            <label for="scrapeAllEmails">Scrape All Available Emails:</label>
+                            <select id="scrapeAllEmails" class="number-select">
+                                <option value="false" selected>No (First 10 per company)</option>
+                                <option value="true">Yes (All emails found)</option>
+                            </select>
+                        </div>
+                        
+
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Searching Trustpilot and extracting contact information...</p>
+            <p>This may take a few minutes depending on the number of companies found.</p>
+            <button class="export-btn" id="cancelBtn" onclick="cancelSearch()" style="margin-top: 20px; background: #dc3545;">
+                ❌ Cancel Search
+            </button>
+        </div>
+
+        <div id="results" class="results-section" style="display: none;">
+            <div class="results-header">
+                <div class="results-count" id="resultsCount"></div>
+                <div class="results-stats" id="resultsStats"></div>
+            </div>
+            <div id="resultsList"></div>
+            
+            <div class="export-section">
+                <button class="export-btn" id="exportBtn" onclick="exportResults()">
+                    📥 Export Results (JSON)
+                </button>
+                <button class="export-btn" id="exportCsvBtn" onclick="exportResultsCsv()" style="margin-left: 15px; background: #17a2b8;">
+                    📊 Export CSV
+                </button>
+            </div>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+    </div>
+
+    <script>
+        let searchResults = [];
+        let currentSearchId = null;
+        let sectors = {};
+
+        // Load sectors on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const response = await fetch('/api/sectors');
+                sectors = await response.json();
+                populateSectorSelect();
+            } catch (error) {
+                console.error('Failed to load sectors:', error);
+            }
+        });
+
+        function populateSectorSelect() {
+            const sectorSelect = document.getElementById('sectorSelect');
+            sectorSelect.innerHTML = '<option value="">Select a sector...</option>';
+            
+            Object.entries(sectors).forEach(([key, sector]) => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = sector.name;
+                sectorSelect.appendChild(option);
+            });
+            
+            // Add event listener for sector selection
+            sectorSelect.addEventListener('change', function() {
+                const selectedSector = this.value;
+                const searchInput = document.getElementById('searchInput');
+                const sectorDescription = document.getElementById('sectorDescription');
+                
+                if (selectedSector && selectedSector !== 'custom' && sectors[selectedSector]) {
+                    // Auto-fill with first search term from sector
+                    searchInput.placeholder = `e.g., ${sectors[selectedSector].search_terms[0]}`;
+                    searchInput.value = '';
+                    sectorDescription.textContent = sectors[selectedSector].description;
+                } else if (selectedSector === 'custom') {
+                    searchInput.placeholder = 'Enter company name or search term...';
+                    searchInput.value = '';
+                    sectorDescription.textContent = 'Enter your own search terms for any industry or company type';
+                } else {
+                    sectorDescription.textContent = '';
+                }
+            });
+        }
+
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            if (!searchTerm) return;
+
+            // Check if backend is healthy first
+            try {
+                const healthResponse = await fetch('/api/health');
+                if (!healthResponse.ok) {
+                    showError('Backend service is not responding. Please try again later.');
+                    return;
+                }
+            } catch (error) {
+                showError('Cannot connect to backend service. Please check if the server is running.');
+                return;
+            }
+
+            // Show loading
+            showLoading();
+            hideError();
+            hideResults();
+
+            try {
+                const maxCompanies = parseInt(document.getElementById('maxCompanies').value);
+                const scrapeAllEmails = document.getElementById('scrapeAllEmails').value === 'true';
+                const selectedSector = document.getElementById('sectorSelect').value;
+                
+                // If sector is selected, use sector search terms
+                let searchTerms = [searchTerm];
+                if (selectedSector && selectedSector !== 'custom' && sectors[selectedSector]) {
+                    searchTerms = sectors[selectedSector].search_terms.map(term => 
+                        term.includes(searchTerm) ? term : `${searchTerm} ${term}`
+                    );
+                }
+                
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                                            body: JSON.stringify({ 
+                        search_term: searchTerm,
+                        max_companies: maxCompanies,
+                        scrape_all_emails: scrapeAllEmails,
+                        sector: selectedSector,
+                        search_terms: searchTerms
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Store search ID and start polling for progress
+                    currentSearchId = data.search_id;
+                    pollProgress(data.search_id, searchTerm);
+                } else {
+                    showError(data.error || 'An error occurred during the search');
+                    hideLoading();
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+                hideLoading();
+            }
+        });
+
+        async function pollProgress(searchId, searchTerm) {
+            try {
+                const response = await fetch(`/api/progress/${searchId}`);
+                const progress = await response.json();
+
+                if (response.ok) {
+                    if (progress.status === 'completed') {
+                        // Get final results
+                        const resultsResponse = await fetch(`/api/results/${searchId}`);
+                        const results = await resultsResponse.json();
+                        
+                        if (resultsResponse.ok) {
+                            searchResults = results;
+                            displayResults(results);
+                        } else {
+                            showError(results.error || 'Failed to get results');
+                        }
+                        hideLoading();
+                    } else if (progress.status === 'error') {
+                        showError(progress.error || 'Search failed');
+                        hideLoading();
+                    } else {
+                        // Still in progress, update loading message and continue polling
+                        updateLoadingMessage(progress);
+                        setTimeout(() => pollProgress(searchId, searchTerm), 1000);
+                    }
+                } else {
+                    showError(progress.error || 'Failed to get progress');
+                    hideLoading();
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+                hideLoading();
+            }
+        }
+
+        function updateLoadingMessage(progress) {
+            const loadingDiv = document.getElementById('loading');
+            if (progress.companies_found > 0) {
+                const processed = progress.companies_processed || 0;
+                const total = progress.companies_found;
+                const percentage = total > 0 ? Math.round((processed / total) * 100) : 0;
+                
+                loadingDiv.innerHTML = `
+                    <div class="spinner"></div>
+                    <p>Found ${total} companies, processing...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percentage}%"></div>
+                    </div>
+                    <p>Companies processed: ${processed}/${total} (${percentage}%)</p>
+                    <p>Emails found so far: ${progress.emails_found || 0}</p>
+                    <button class="export-btn" id="cancelBtn" onclick="cancelSearch()" style="margin-top: 20px; background: #dc3545;">
+                        ❌ Cancel Search
+                    </button>
+                `;
+            }
+        }
+
+        async function cancelSearch() {
+            if (!currentSearchId) return;
+            
+            try {
+                const response = await fetch(`/api/cancel/${currentSearchId}`, { method: 'POST' });
+                if (response.ok) {
+                    hideLoading();
+                    showError('Search cancelled by user');
+                    currentSearchId = null;
+                } else {
+                    showError('Failed to cancel search');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('searchBtn').disabled = true;
+            document.getElementById('searchBtn').textContent = '⏳ Searching...';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('searchBtn').disabled = false;
+            document.getElementById('searchBtn').textContent = '🔍 Search';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+
+        function hideResults() {
+            document.getElementById('results').style.display = 'none';
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const resultsListDiv = document.getElementById('resultsList');
+            const resultsCountDiv = document.getElementById('resultsCount');
+            const resultsStatsDiv = document.getElementById('resultsStats');
+
+            resultsCountDiv.textContent = `Found ${data.companies_found} companies for "${data.search_term}"`;
+            
+            // Calculate and display statistics
+            const totalEmails = data.results.reduce((sum, company) => sum + company.total_emails, 0);
+            const companiesWithEmails = data.results.filter(company => company.total_emails > 0).length;
+            const avgEmailsPerCompany = data.companies_found > 0 ? Math.round(totalEmails / data.companies_found * 10) / 10 : 0;
+            
+            resultsStatsDiv.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">${data.companies_found}</div>
+                        <div class="stat-label">Companies Found</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">${totalEmails}</div>
+                        <div class="stat-label">Total Emails</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">${companiesWithEmails}</div>
+                        <div class="stat-label">Companies with Emails</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">${avgEmailsPerCompany}</div>
+                        <div class="stat-label">Avg Emails/Company</div>
+                    </div>
+                </div>
+            `;
+
+            let html = '';
+            
+            if (!data.results || !Array.isArray(data.results)) {
+                html = '<div class="error">No results data available</div>';
+            } else {
+                data.results.forEach(company => {
+                html += `
+                    <div class="company-card">
+                        <div class="company-header">
+                            <div class="company-name">${company.name}</div>
+                            ${company.raw_name && company.raw_name !== company.name ? 
+                                `<div class="company-original-name">Original: ${company.raw_name}</div>` : ''
+                            }
+                        </div>
+                        <a href="${company.url}" target="_blank" class="company-url">${company.url}</a>
+                        
+                        <div class="emails-section">
+                            <div class="emails-title">📧 Company Emails (${company.total_emails} found):</div>
+                            ${company.company_emails && company.company_emails.length > 0 ? 
+                                `<div class="email-list">${company.company_emails.map(email => 
+                                    `<span class="email-tag">${email}</span>`
+                                ).join('')}</div>` : 
+                                '<div class="no-emails">No emails found</div>'
+                            }
+                        </div>
+
+                        ${company.scraped_at ? `<div class="scraped-time">⏰ Scraped: ${new Date(company.scraped_at).toLocaleString()}</div>` : ''}
+                    </div>
+                `;
+                });
+            }
+
+            resultsListDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+
+        function exportResults() {
+            if (!searchResults || !searchResults.results || searchResults.results.length === 0) {
+                alert('No results to export');
+                return;
+            }
+
+            const dataStr = JSON.stringify(searchResults, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `trustpilot_emails_${searchResults.search_term || 'search'}_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+        }
+
+        function exportResultsCsv() {
+            if (!searchResults || !searchResults.results || searchResults.results.length === 0) {
+                alert('No results to export');
+                return;
+            }
+
+            // Create CSV content
+            const headers = ['Company Name', 'Company URL', 'Company Emails', 'Total Emails', 'Sector', 'Scraped At'];
+            const csvContent = [
+                headers.join(','),
+                ...searchResults.results.map(company => [
+                    `"${company.name}"`,
+                    `"${company.url}"`,
+                    `"${company.company_emails ? company.company_emails.join('; ') : ''}"`,
+                    company.total_emails,
+                    `"${company.sector || ''}"`,
+                    `"${company.scraped_at || ''}"`
+                ].join(','))
+            ].join('\n');
+
+            const dataBlob = new Blob([csvContent], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `trustpilot_emails_${searchResults.search_term || 'search'}_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+    </script>
+</body>
+</html>
