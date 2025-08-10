@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
@@ -35,6 +35,7 @@ except ImportError:
     TRUSTPILOT_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 
 app = Flask(__name__)
+app.secret_key = 'your-secret-key-here-change-in-production'  # Change this in production
 CORS(app)
 
 # Configure logging
@@ -413,10 +414,31 @@ def background_scraping_task(search_id, search_term, max_companies, scrape_all_e
         scraper.cleanup_driver()
 
 @app.route('/')
+@login_required
 def index():
+    """Main page - requires login"""
     return render_template('index.html')
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Login page"""
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == 'olawanle':
+            session['logged_in'] = True
+            return redirect(url_for('index'))
+        else:
+            return render_template('login.html', error='Invalid password')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    """Logout route"""
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
+
 @app.route('/api/search', methods=['POST'])
+@login_required
 def start_search():
     try:
         data = request.get_json()
@@ -451,6 +473,7 @@ def start_search():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/progress/<search_id>')
+@login_required
 def get_progress(search_id):
     """Get progress of a specific search"""
     if search_id not in scraping_progress:
@@ -459,6 +482,7 @@ def get_progress(search_id):
     return jsonify(scraping_progress[search_id])
 
 @app.route('/api/results/<search_id>')
+@login_required
 def get_results(search_id):
     """Get results of a completed search"""
     if search_id not in scraping_progress:
@@ -476,6 +500,7 @@ def get_results(search_id):
     })
 
 @app.route('/api/cancel/<search_id>')
+@login_required
 def cancel_search(search_id):
     """Cancel a running search"""
     if search_id not in scraping_progress:
@@ -485,6 +510,7 @@ def cancel_search(search_id):
     return jsonify({'message': 'Search cancelled successfully'})
 
 @app.route('/api/export/csv/<search_id>')
+@login_required
 def export_csv(search_id):
     """Export results to CSV"""
     if search_id not in scraping_progress:
@@ -529,6 +555,7 @@ def export_csv(search_id):
     )
 
 @app.route('/api/export/json/<search_id>')
+@login_required
 def export_json(search_id):
     """Export results to JSON"""
     if search_id not in scraping_progress:
@@ -550,6 +577,7 @@ def export_json(search_id):
     )
 
 @app.route('/api/sectors')
+@login_required
 def get_sectors():
     """Get available sectors for search suggestions"""
     sectors = {
@@ -587,6 +615,7 @@ def get_sectors():
     return jsonify(sectors)
 
 @app.route('/api/health')
+@login_required
 def health_check():
     return jsonify({'status': 'healthy', 'message': 'Trustpilot Email Scraper is running'})
 

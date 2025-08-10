@@ -32,6 +32,7 @@
             color: white;
             padding: 40px;
             text-align: center;
+            position: relative;
         }
 
         .header h1 {
@@ -43,6 +44,26 @@
         .header p {
             font-size: 1.1rem;
             opacity: 0.9;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
         }
 
         .search-section {
@@ -402,6 +423,7 @@
 <body>
     <div class="container">
         <div class="header">
+            <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
             <h1>🔍 Trustpilot Email Scraper</h1>
             <p>Find contact information and emails from Trustpilot company pages and reviews</p>
         </div>
