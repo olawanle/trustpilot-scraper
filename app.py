@@ -47,6 +47,11 @@ logger = logging.getLogger(__name__)
 scraping_progress = {}
 scraping_queue = Queue()
 
+# If you wish, you can keep your old, login-protected health endpoint for internal use:
+@app.route('/api/health')
+def health_check():
+    return jsonify({'status': 'healthy', 'message': 'Trustpilot Email Scraper is running'})
+    
 class TrustpilotScraper:
     def __init__(self):
         self.base_url = TRUSTPILOT_BASE_URL
