@@ -436,15 +436,9 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Login page"""
-    if request.method == 'POST':
-        password = request.form.get('password')
-        if password == 'olawanle':
+    """Auto-login without password"""
             session['logged_in'] = True
             return redirect(url_for('index'))
-        else:
-            return render_template('login.html', error='Invalid password')
-    return render_template('login.html')
 
 @app.route('/logout')
 def logout():
