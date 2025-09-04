@@ -437,8 +437,8 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Auto-login without password"""
-            session['logged_in'] = True
-            return redirect(url_for('index'))
+    session['logged_in'] = True
+    return redirect(url_for('index'))
 
 @app.route('/logout')
 def logout():
