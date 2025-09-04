@@ -627,5 +627,9 @@ def get_sectors():
 def health_check():
     return jsonify({'status': 'healthy', 'message': 'Trustpilot Email Scraper is running'})
 
+@app.route('/health')
+def health_check_root():
+    return 'ok', 200
+
 if __name__ == '__main__':
     app.run(debug=FLASK_DEBUG, host=FLASK_HOST, port=FLASK_PORT)
