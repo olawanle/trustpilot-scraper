@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
@@ -19,6 +19,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 import logging
 import threading
 from queue import Queue
+import os
+from functools import wraps
 # Default values for configuration
 FLASK_HOST = '0.0.0.0'
 FLASK_PORT = int(os.environ.get('PORT', 5000))  # Railway will provide PORT environment variable
@@ -47,10 +49,17 @@ logger = logging.getLogger(__name__)
 scraping_progress = {}
 scraping_queue = Queue()
 
-# If you wish, you can keep your old, login-protected health endpoint for internal use:
-@app.route('/api/health')
-def health_check():
-    return jsonify({'status': 'healthy', 'message': 'Trustpilot Email Scraper is running'})
+def login_required(view_function):
+    """Simple session-based login required decorator"""
+    @wraps(view_function)
+    def wrapped_view(*args, **kwargs):
+        if not session.get('logged_in'):
+            # For API requests, return 401 JSON; for others, redirect to login
+            if request.path.startswith('/api/'):
+                return jsonify({'error': 'Authentication required'}), 401
+            return redirect(url_for('login'))
+        return view_function(*args, **kwargs)
+    return wrapped_view
 
 class TrustpilotScraper:
     def __init__(self):
@@ -420,6 +429,7 @@ def background_scraping_task(search_id, search_term, max_companies, scrape_all_e
         scraper.cleanup_driver()
 
 @app.route('/')
+@login_required
 def index():
     """Main page - requires login"""
     return render_template('index.html')
@@ -443,6 +453,7 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/api/search', methods=['POST'])
+@login_required
 def start_search():
     try:
         data = request.get_json()
@@ -477,6 +488,7 @@ def start_search():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/progress/<search_id>')
+@login_required
 def get_progress(search_id):
     """Get progress of a specific search"""
     if search_id not in scraping_progress:
@@ -485,6 +497,7 @@ def get_progress(search_id):
     return jsonify(scraping_progress[search_id])
 
 @app.route('/api/results/<search_id>')
+@login_required
 def get_results(search_id):
     """Get results of a completed search"""
     if search_id not in scraping_progress:
@@ -502,6 +515,7 @@ def get_results(search_id):
     })
 
 @app.route('/api/cancel/<search_id>')
+@login_required
 def cancel_search(search_id):
     """Cancel a running search"""
     if search_id not in scraping_progress:
@@ -511,6 +525,7 @@ def cancel_search(search_id):
     return jsonify({'message': 'Search cancelled successfully'})
 
 @app.route('/api/export/csv/<search_id>')
+@login_required
 def export_csv(search_id):
     """Export results to CSV"""
     if search_id not in scraping_progress:
@@ -535,7 +550,7 @@ def export_csv(search_id):
         writer.writerow([
             company['name'],
             company['url'],
-            '; '.join(company['company_contact_info']),
+            '; '.join(company['company_emails']),
             company['total_emails'],
             company.get('sector', ''),
             company.get('scraped_at', '')
@@ -555,6 +570,7 @@ def export_csv(search_id):
     )
 
 @app.route('/api/export/json/<search_id>')
+@login_required
 def export_json(search_id):
     """Export results to JSON"""
     if search_id not in scraping_progress:
@@ -576,6 +592,7 @@ def export_json(search_id):
     )
 
 @app.route('/api/sectors')
+@login_required
 def get_sectors():
     """Get available sectors for search suggestions"""
     sectors = {
@@ -612,7 +629,9 @@ def get_sectors():
     }
     return jsonify(sectors)
 
-
+@app.route('/api/health')
+def health_check():
+    return jsonify({'status': 'healthy', 'message': 'Trustpilot Email Scraper is running'})
 
 if __name__ == '__main__':
     app.run(debug=FLASK_DEBUG, host=FLASK_HOST, port=FLASK_PORT)
